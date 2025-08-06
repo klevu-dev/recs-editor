@@ -1130,6 +1130,7 @@ class RecsEditor {
       }
       
       if (!this.discoveredKeys[key]) {
+        // New key - add it with default disabled state     
         this.discoveredKeys[key] = {
           enabled: false,
           metadata: {
@@ -1145,13 +1146,26 @@ class RecsEditor {
         };
         this.updateKeysList();
         this.saveCurrentState();
-      } else if (!this.discoveredKeys[key].originalCode) {
-        // Update with original code if it wasn't stored before
+      } else {
+        // Existing key - update metadata and original code but preserve enabled state
+        const preservedEnabledState = this.discoveredKeys[key].enabled;
+        
+        // Update metadata with fresh data from current page
+        this.discoveredKeys[key].metadata = {
+          title: metadata.title || key,
+          logic: metadata.logic || '',
+          pageType: metadata.pageType || ''
+        };
+        // Update original code with fresh data 
         this.discoveredKeys[key].originalCode = {
           templates: response.templates?.base || '',
           scripts: response.scripts?.recsObject || '',
           css: response.styles?.base || ''
         };
+
+        // Preserve the enabled state
+        this.discoveredKeys[key].enabled = preservedEnabledState;
+        
         this.updateKeysList();
         this.saveCurrentState();
       }
