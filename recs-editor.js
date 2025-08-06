@@ -210,6 +210,7 @@ class RecsEditor {
       };
       this.discoveredKeys = {};
       this.originalKeys = {};
+      this.currentPageKeys = new Set(); // Track keys present on current page
       this.showUI = showUI;
       
       this.init();
@@ -1129,6 +1130,9 @@ class RecsEditor {
         return;
       }
       
+      // Add key to current page keys
+      this.currentPageKeys.add(key);
+      
       if (!this.discoveredKeys[key]) {
         // New key - add it with default disabled state     
         this.discoveredKeys[key] = {
@@ -1165,7 +1169,7 @@ class RecsEditor {
 
         // Preserve the enabled state
         this.discoveredKeys[key].enabled = preservedEnabledState;
-        
+
         this.updateKeysList();
         this.saveCurrentState();
       }
@@ -1181,14 +1185,18 @@ class RecsEditor {
       const keysList = document.getElementById('recs-editor-keys-list');
       if (!keysList) return;
   
-      const keys = Object.keys(this.discoveredKeys);
-      if (keys.length === 0) {
+      // Filter to only show keys that are on the current page
+      const currentPageKeyArray = Array.from(this.currentPageKeys);
+
+      if (currentPageKeyArray.length === 0) {
         keysList.innerHTML = '<p class="recs-editor-no-keys">No recommendation keys discovered yet.</p>';
         return;
       }
   
-      keysList.innerHTML = keys.map(key => {
+      keysList.innerHTML = currentPageKeyArray.map(key => {
         const keyData = this.discoveredKeys[key];
+        if (!keyData) return ''; // Skip if key doesn't exist in discoveredKeys
+        
         const metadata = keyData.metadata;
         const hasOriginalCode = keyData.originalCode && 
           (keyData.originalCode.templates || keyData.originalCode.scripts || keyData.originalCode.css);
